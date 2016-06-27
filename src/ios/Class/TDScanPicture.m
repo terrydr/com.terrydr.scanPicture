@@ -7,6 +7,8 @@
 //
 
 #import "TDScanPicture.h"
+#import "MLSelectPhotoBrowserViewController.h"
+#import "TDNavgationController.h"
 
 @interface TDScanPicture ()
 

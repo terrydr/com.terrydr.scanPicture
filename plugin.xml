@@ -31,8 +31,21 @@
             </feature>
         </config-file>
         
-        <source-file src="src/ios/TDScanPicture.m" />
-        <header-file src="src/ios/TDScanPicture.h" />
+        <source-file src="src/ios/Class/TDScanPicture.m" />
+        <header-file src="src/ios/Class/TDScanPicture.h" />
+        <source-file src="src/ios/Class/TDNavgationController.m" />
+        <header-file src="src/ios/Class/TDNavgationController.h" />
+        <source-file src="src/ios/Class/LX_layoutAttributes.m" />
+        <header-file src="src/ios/Class/LX_layoutAttributes.h" />
+        <header-file src="src/ios/Class/MLSelectPhotoCommon.h" />
+        <source-file src="src/ios/Class/MLSelectPhotoBrowserViewController.m" />
+        <header-file src="src/ios/Class/MLSelectPhotoBrowserViewController.h" />
+        <source-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoScrollView.m" />
+        <header-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoScrollView.h" />
+        <source-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoView.m" />
+        <header-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoView.h" />
+        <source-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoImageView.m" />
+        <header-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoImageView.h" />
     </platform>
     
 </plugin>
