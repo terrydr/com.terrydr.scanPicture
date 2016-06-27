@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-tdScanPicture"
+        version="0.0.1">
+    
+    <name>TDScanPicture</name>
+    
+    <description>This plugin for Cordova</description>
+    
+    <keywords>Cordova</keywords>
+    
+    <repo>https://github.com/terrydr/com.terrydr.exit.git</repo>
+    <issue>https://github.com/terrydr/com.terrydr.exit.git</issue>
+    
+    <license>MIT</license>
+    
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+    
+    <js-module src="www/TDScanPicture.js" name="TDScanPicture">
+        <clobbers target="tdScanPicture" />
+    </js-module>
+    
+    <platform name="ios">
+        <config-file  target="config.xml" parent="/*">
+            <feature  name="TDScanPicture">
+                <param  name="ios-package"  value="TDScanPicture"/>
+            </feature>
+        </config-file>
+        
+        <source-file src="src/ios/TDScanPicture.m" />
+        <header-file src="src/ios/TDScanPicture.h" />
+    </platform>
+    
+</plugin>
