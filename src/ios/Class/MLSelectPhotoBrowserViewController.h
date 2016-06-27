@@ -23,8 +23,6 @@ typedef void(^deleteCallBackBlock)();
 @property (nonatomic , assign) NSInteger currentPage;
 @property (nonatomic , assign) NSInteger leftCount;
 @property (nonatomic , assign) NSInteger rightCount;
-// 当前提供的分页数
-@property (nonatomic , assign) BOOL isModelData;
 
 @property (nonatomic , copy) deleteCallBackBlock deleteCallBack;
 @end

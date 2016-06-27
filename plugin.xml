@@ -47,6 +47,8 @@
         <source-file src="src/ios/Class/LX_layoutAttributes.m" />
         <header-file src="src/ios/Class/LX_layoutAttributes.h" />
         <header-file src="src/ios/Class/MLSelectPhotoCommon.h" />
+        <source-file src="src/ios/Class/ZQBaseClassesExtended.m" />
+        <header-file src="src/ios/Class/ZQBaseClassesExtended.h" />
         <source-file src="src/ios/Class/MLSelectPhotoBrowserViewController.m" />
         <header-file src="src/ios/Class/MLSelectPhotoBrowserViewController.h" />
         <source-file src="src/ios/Class/MLSelectPhotoPickerBrowserPhotoScrollView.m" />

@@ -14,9 +14,7 @@
 #import "MLSelectPhotoPickerBrowserPhotoScrollView.h"
 #import "MLSelectPhotoCommon.h"
 #import "UIImage+MLTint.h"
-#import "TDMediaFileManage.h"
 #import "ZQBaseClassesExtended.h"
-#import "TDAlertView.h"
 
 // 分页控制器的高度
 static NSInteger ZLPickerColletionViewPadding = 20;
@@ -36,7 +34,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 @property (strong,nonatomic)    UIButton          *deleleBtn;
 @property (strong,nonatomic)    UIButton          *trashBtn;
 @property (weak,nonatomic)      UIButton          *backBtn;
-@property (strong,nonatomic)    UIButton          *selectedBtn;
 @property (weak,nonatomic)      UICollectionView  *collectionView;
 
 // 标记View
@@ -45,8 +42,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 @property (strong,nonatomic)    UIButton *doneBtn;
 
 @property (strong,nonatomic)    UIView *pageControl;
-@property (strong,nonatomic)    UIView *infoView;
-@property (strong,nonatomic)    UILabel *eyeTypeLab;
 
 @property (strong,nonatomic)    NSMutableDictionary *deleteAssets;
 @property (strong,nonatomic)    NSMutableArray *doneAssets;
@@ -94,16 +89,8 @@ static NSString *_cellIdentifier = @"collectionViewCell";
         collectionView.delegate = self;
         [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:_cellIdentifier];
         
-        UISwipeGestureRecognizer *recognizer = [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(upHandleSwipe:)];
-        [recognizer setDirection:(UISwipeGestureRecognizerDirectionUp)];
-        
         [self.view addSubview:collectionView];
-        if (_isModelData) {
-            [collectionView addGestureRecognizer:recognizer];
-            [self.view addSubview:self.infoView];
-            [self.view addSubview:self.pageControl];
-            [self.infoView addSubview:self.selectedBtn];
-        }
+        [self.view addSubview:self.pageControl];
         self.collectionView = collectionView;
         
         _collectionView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -117,27 +104,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
         }
     }
     return _collectionView;
-}
-
-- (void)upHandleSwipe:(UISwipeGestureRecognizer *)sender{
-    if (sender.direction == UISwipeGestureRecognizerDirectionUp){
-        [self showDeletePictureAlert];
-    }
-}
-
-- (void)showDeletePictureAlert{
-    BOOL value = [[NSUserDefaults standardUserDefaults] boolForKey:@"NoDisplay"];
-    if (!value) {
-        TDAlertView *alert = [[TDAlertView alloc] init];
-        [alert tdShowWithSelectedBlock:^(TDAlertButton buttonindex) {
-            if (buttonindex==TDAlertButtonOk) {
-                [self trashAsset];
-            }else if (buttonindex==TDAlertButtonCancel){
-            }
-        }];
-    }else{
-        [self trashAsset];
-    }
 }
 
 - (UIView *)pageControl{
@@ -174,36 +140,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
     }
 }
 
-- (UIView *)infoView{
-    if (!_infoView) {
-        CGFloat infoWidth = CGRectGetWidth(self.view.bounds);
-        CGFloat infoHeight = 120.0f/2.0f;
-        CGFloat infoOriginX = 0.0f;
-        CGFloat infoOriginY = CGRectGetHeight(self.view.bounds)-infoHeight;
-        _infoView = [[UIView alloc] initWithFrame:CGRectMake(infoOriginX, infoOriginY, infoWidth, infoHeight)];
-        _infoView.backgroundColor = RGB(0x3691e6);
-        
-        CGFloat typeOriginX = 30.0f/2.0f;
-        CGFloat typeOriginY = 0.0f;
-        CGFloat typeWidth = 160.0f;
-        CGFloat typeHeight = infoHeight;
-        self.eyeTypeLab = [[UILabel alloc] initWithFrame:CGRectMake(typeOriginX, typeOriginY, typeWidth, typeHeight)];
-        if (_leftCount>0) {
-            if (_rightCount>0) {
-                _eyeTypeLab.text = @"左眼 0/2   右眼 0/2";
-            }else{
-                _eyeTypeLab.text = @"左眼 0/2";
-            }
-        }else{
-            _eyeTypeLab.text = @"右眼 0/2";
-        }
-        _eyeTypeLab.textAlignment = NSTextAlignmentLeft;
-        _eyeTypeLab.textColor = [UIColor whiteColor];
-        [_infoView addSubview:_eyeTypeLab];
-    }
-    return _infoView;
-}
-
 #pragma mark Get View
 #pragma mark makeView 红点标记View
 - (UILabel *)makeView{
@@ -222,123 +158,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
         
     }
     return _makeView;
-}
-
-- (UIButton *)selectedBtn{
-    if (!_selectedBtn) {
-        UIImage *selectedImg = [UIImage imageNamed:@"unselectedicon"];
-        CGFloat selectedWidth = 38.0f;
-        CGFloat selectedHeight = 38.0f;
-        CGFloat selectedOriginX = CGRectGetWidth(self.view.bounds)-selectedWidth-30.0f/2.0f;
-        CGFloat selectedOriginY = (CGRectGetHeight(self.infoView.bounds)-selectedHeight)/2.0f;
-        _selectedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        _selectedBtn.frame = CGRectMake(selectedOriginX, selectedOriginY, selectedWidth, selectedHeight);
-        [_selectedBtn setBackgroundImage:selectedImg forState:UIControlStateNormal];
-        [_selectedBtn addTarget:self action:@selector(seclectedBtnClick:) forControlEvents:UIControlEventTouchUpInside];
-    }
-    return _selectedBtn;
-}
-
-- (void)seclectedBtnClick:(id)sender{
-    UIButton *btn = (UIButton *)sender;
-    btn.selected = !btn.isSelected;
-    TDPictureModel *pictureModel = self.photos[_currentPage];
-    
-    BOOL isLeftEye;
-    if (_leftCount>0) {
-        if (_currentPage+1<=_leftCount) {
-            isLeftEye=YES;
-        }else{
-            isLeftEye=NO;
-        }
-    }else{
-        isLeftEye=NO;
-    }
-    
-    NSString *imgPath = [[TDMediaFileManage shareInstance] getImagePathWithPictureName:pictureModel.pictureName isLeftEye:isLeftEye];
-    UIImage *selectedImg = [UIImage imageNamed:@"selectedicon"];
-    UIImage *unselectedImg = [UIImage imageNamed:@"unselectedicon"];
-    if (btn.selected) {
-        if (_leftCount>0) {
-            if (_currentPage+1<=_leftCount) {
-                if (_leftSelectedCount == 2) {
-                    [self mlShowBeyondLimitSelectedCount];
-                }else{
-                    _leftSelectedCount++;
-                    [_mlLeftselectedArr addObject:imgPath];
-                    [_selectedModelArr addObject:pictureModel];
-                    pictureModel.isSelected = YES;
-                    [_selectedBtn setBackgroundImage:selectedImg forState:UIControlStateNormal];
-                }
-            }else{
-                if (_rightSelectedCount == 2) {
-                    [self mlShowBeyondLimitSelectedCount];
-                }else{
-                    _rightSelectedCount++;
-                    [_mlRightselectedArr addObject:imgPath];
-                    [_selectedModelArr addObject:pictureModel];
-                    pictureModel.isSelected = YES;
-                    [_selectedBtn setBackgroundImage:selectedImg forState:UIControlStateNormal];
-                }
-            }
-        }else{
-            if (_rightSelectedCount == 2) {
-                [self mlShowBeyondLimitSelectedCount];
-            }else{
-                _rightSelectedCount++;
-                [_mlRightselectedArr addObject:imgPath];
-                [_selectedModelArr addObject:pictureModel];
-                pictureModel.isSelected = YES;
-                [_selectedBtn setBackgroundImage:selectedImg forState:UIControlStateNormal];
-            }
-        }
-    }else{
-        if (_leftCount>0) {
-            if (_currentPage+1<=_leftCount) {
-                _leftSelectedCount--;
-                [_mlLeftselectedArr removeObject:imgPath];
-            }else{
-                _rightSelectedCount--;
-                [_mlRightselectedArr removeObject:imgPath];
-            }
-        }else{
-            _rightSelectedCount--;
-            [_mlRightselectedArr removeObject:imgPath];
-        }
-        [_selectedModelArr removeObject:pictureModel];
-        pictureModel.isSelected = NO;
-        [_selectedBtn setBackgroundImage:unselectedImg forState:UIControlStateNormal];
-    }
-    
-    if (_leftCount>0) {
-        if (_rightCount>0) {
-            _eyeTypeLab.text = [NSString stringWithFormat:@"左眼 %d/2   右眼 %d/2",_leftSelectedCount,_rightSelectedCount];
-        }else{
-            _eyeTypeLab.text = [NSString stringWithFormat:@"左眼 %d/2",_leftSelectedCount];
-        }
-    }else{
-        _eyeTypeLab.text = [NSString stringWithFormat:@"右眼 %d/2",_rightSelectedCount];
-    }
-    
-    if (_selectedModelArr.count>0) {
-        if (_isModelData) {
-            self.navigationItem.rightBarButtonItem.enabled = YES;
-        }
-    }else{
-        if (_isModelData) {
-            self.navigationItem.rightBarButtonItem.enabled = NO;
-        }
-    }
-}
-
-- (void)mlShowBeyondLimitSelectedCount{
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"单侧眼睛最多选择两张图片" message:nil preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *sureAction = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-        
-    }];
-    // Add the actions.
-    [alertController addAction:sureAction];
-    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (UIButton *)doneBtn{
@@ -443,35 +262,10 @@ static NSString *_cellIdentifier = @"collectionViewCell";
                                                  style:UIBarButtonItemStylePlain
                                                 target:self
                                                 action:@selector(mlLeftBarButtonItemAction)];
-    _rightItem = [[UIBarButtonItem alloc] initWithTitle:@"提交"
-                                                  style:UIBarButtonItemStylePlain
-                                                 target:self
-                                                 action:@selector(mlRightBarButtonItemAction)];
-    
-    if (_isModelData) {
-        self.navigationItem.rightBarButtonItem = _rightItem;
-        self.navigationItem.rightBarButtonItem.enabled = NO;
-    }else{
-        self.navigationItem.leftBarButtonItem = _leftItem;
-    }
+    self.navigationItem.leftBarButtonItem = _leftItem;
 }
 
 - (void)mlLeftBarButtonItemAction{
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
-
-- (void)mlRightBarButtonItemAction{
-    NSMutableDictionary *temDic = [[NSMutableDictionary alloc] initWithCapacity:0];
-    if ([_mlLeftselectedArr isValid]) {
-        [temDic setObject:_mlLeftselectedArr forKey:@"leftEye"];
-    }
-    if ([_mlRightselectedArr isValid]) {
-        [temDic setObject:_mlRightselectedArr forKey:@"rightEye"];
-    }
-    NSDictionary *pathDic = [NSDictionary dictionaryWithDictionary:temDic];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"TakePhotosFinishedNotification"
-                                                        object:nil
-                                                      userInfo:pathDic];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -517,86 +311,7 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 }
 
 - (void)trashAsset{
-    NSMutableArray *trashAssets = [NSMutableArray arrayWithArray:self.photos];
-    TDPictureModel *pictureModel = self.photos[self.currentPage];
-    if ([trashAssets containsObject:pictureModel]) {
-        [trashAssets removeObject:pictureModel];
-        [[TDMediaFileManage shareInstance] deleteSingleFileWithPictureName:pictureModel.pictureName
-                                                                 isLeftEye:_isCurrentLeftEye];
-        NSString *eyeType;
-        if (_isCurrentLeftEye) {
-            
-            int index = (int)self.currentPage +1;
-            int totalCount = (int)_leftCount;
-            if (index != totalCount) {
-                //重新排序
-                for (int i=index; i<totalCount; i++) {
-                    TDPictureModel *tempPictureModel = self.photos[i];
-                    NSString *imgPath = [[TDMediaFileManage shareInstance] getImagePathWithPictureName:tempPictureModel.pictureName isLeftEye:YES];
-                    NSData *imgData = [NSData dataWithContentsOfFile:imgPath];
-                    
-                    TDMediaFileManage *fileManage = [TDMediaFileManage shareInstance];
-                    NSString *filePath = [fileManage getJRMediaPathWithType:YES];
-                    NSString *imageName = [NSString stringWithFormat:@"0%d.jpg",i];
-                    NSString *destinationImgPath = [NSString stringWithFormat:@"%@/%@",filePath,imageName];
-                    BOOL result = [fileManage saveFileWithPath:destinationImgPath fileData:imgData];
-                    NSLog(@"result:%d",result);
-                    
-                    [[TDMediaFileManage shareInstance] deleteSingleFileWithPictureName:tempPictureModel.pictureName
-                                                                             isLeftEye:YES];
-                    tempPictureModel.pictureName = imageName;
-                }
-            }
-            
-            eyeType = @"left";
-            _leftCount--;
-        }else{
-            
-            int index = (int)self.currentPage +1;
-            int totalCount = (int)_rightCount;
-            if (index != totalCount) {
-                //重新排序
-                for (int i=index; i<totalCount; i++) {
-                    TDPictureModel *tempPictureModel = self.photos[i];
-                    NSString *imgPath = [[TDMediaFileManage shareInstance] getImagePathWithPictureName:tempPictureModel.pictureName isLeftEye:NO];
-                    NSData *imgData = [NSData dataWithContentsOfFile:imgPath];
-                    
-                    TDMediaFileManage *fileManage = [TDMediaFileManage shareInstance];
-                    NSString *filePath = [fileManage getJRMediaPathWithType:NO];
-                    NSString *imageName = [NSString stringWithFormat:@"0%d.jpg",i];
-                    NSString *destinationImgPath = [NSString stringWithFormat:@"%@/%@",filePath,imageName];
-                    BOOL result = [fileManage saveFileWithPath:destinationImgPath fileData:imgData];
-                    NSLog(@"result:%d",result);
-                    
-                    [[TDMediaFileManage shareInstance] deleteSingleFileWithPictureName:tempPictureModel.pictureName
-                                                                             isLeftEye:NO];
-                    tempPictureModel.pictureName = imageName;
-                }
-            }
-            
-            eyeType = @"right";
-            _rightCount--;
-        }
-        if ([_selectedModelArr isValid] && [_selectedModelArr containsObject:pictureModel]) {
-            [_selectedModelArr removeObject:pictureModel];
-            if (_isCurrentLeftEye) {
-                _leftSelectedCount--;
-            }else{
-                _rightSelectedCount--;
-            }
-            if (_leftCount>0) {
-                if (_rightCount>0) {
-                    _eyeTypeLab.text = [NSString stringWithFormat:@"左眼 %d/2   右眼 %d/2",_leftSelectedCount,_rightSelectedCount];
-                }else{
-                    _eyeTypeLab.text = [NSString stringWithFormat:@"左眼 %d/2",_leftSelectedCount];
-                }
-            }else{
-                _eyeTypeLab.text = [NSString stringWithFormat:@"右眼 %d/2",_rightSelectedCount];
-            }
-            if (![_selectedModelArr isValid]) {
-                self.navigationItem.rightBarButtonItem.enabled = NO;
-            }
-        }
+
         
         self.currentPage --;
         if (self.currentPage < 0) {
@@ -616,7 +331,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 
 #pragma mark - reloadData
 - (void) reloadData{
-    
     [self reloadPageControl];
     [self.collectionView reloadData];
     
@@ -671,26 +385,9 @@ static NSString *_cellIdentifier = @"collectionViewCell";
     
     if (self.photos.count) {
         cell.backgroundColor = [UIColor clearColor];
-        UIImage *photo; //[self.dataSource photoBrowser:self photoAtIndex:indexPath.item];
-        if (_isModelData) {
-            BOOL isLeftEye;
-            if (_leftCount>0) {
-                if (indexPath.row+1<=_leftCount) {
-                    isLeftEye=YES;
-                }else{
-                    isLeftEye=NO;
-                }
-            }else{
-                isLeftEye=NO;
-            }
-            TDPictureModel *pictureModel = self.photos[indexPath.item];
-            NSString *imgPath = [[TDMediaFileManage shareInstance] getImagePathWithPictureName:pictureModel.pictureName isLeftEye:isLeftEye];
-            photo = [UIImage imageWithContentsOfFile:imgPath];
-        }else{
-            NSDictionary *paramDic = self.photos[indexPath.item];
-            NSString *imgPath = [paramDic objectForKey:@"origin"];
-            photo = [UIImage imageWithContentsOfFile:imgPath];
-        }
+        NSDictionary *paramDic = self.photos[indexPath.item];
+        NSString *imgPath = [paramDic objectForKey:@"origin"];
+        UIImage *photo = [UIImage imageWithContentsOfFile:imgPath];
         
         if([[cell.contentView.subviews lastObject] isKindOfClass:[UIView class]]){
             [[cell.contentView.subviews lastObject] removeFromSuperview];
@@ -716,9 +413,6 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 // 单击调用
 - (void) pickerPhotoScrollViewDidSingleClick:(MLSelectPhotoPickerBrowserPhotoScrollView *)photoScrollView{
     self.navigationController.navigationBar.hidden = !self.navigationController.navigationBar.isHidden;
-    if (_isModelData) {
-        self.infoView.hidden = !self.infoView.hidden;
-    }
     if (self.isEditing) {
         self.toolBar.hidden = !self.toolBar.isHidden;
     }
@@ -793,56 +487,7 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 }
 
 - (void)setPageLabelPage:(NSInteger)page{
-    if (_isModelData) {
-        if (_leftCount>0) {
-            if (page+1<=_leftCount) {
-                _isCurrentLeftEye = YES;
-                self.title = @"左眼";
-            }else{
-                _isCurrentLeftEye = NO;
-                self.title = @"右眼";
-            }
-        }else{
-            _isCurrentLeftEye = NO;
-            self.title = @"右眼";
-        }
-        
-        if ([_selectedModelArr isValid]) {
-            NSMutableArray *indexArr = [[NSMutableArray alloc] initWithCapacity:0];
-            for (TDPictureModel *model in _selectedModelArr) {
-                NSUInteger index = [_photos indexOfObject:model];
-                [indexArr addObject:[NSNumber numberWithUnsignedInteger:index]];
-            }
-            
-            for (int i=0; i<_photos.count; i++) {
-                UIView *dotView = [_pageControl.subviews objectAtIndex:i];
-                if ([indexArr containsObject:[NSNumber numberWithInt:i]]) {
-                    dotView.backgroundColor = RGB(0x76c000);
-                }else{
-                    dotView.backgroundColor = [UIColor whiteColor];
-                }
-            }
-        }else{
-            _currentPageView.backgroundColor = [UIColor whiteColor];
-        }
-        
-        UIView *dotView = [_pageControl.subviews objectAtIndex:page];
-        dotView.backgroundColor = RGB(0x3691e6);
-        _currentPageView = dotView;
-        
-        TDPictureModel *pictureModel = self.photos[page];
-        UIImage *selectedImg = [UIImage imageNamed:@"selectedicon"];
-        UIImage *unselectedImg = [UIImage imageNamed:@"unselectedicon"];
-        if (pictureModel.isSelected) {
-            _selectedBtn.selected = YES;
-            [_selectedBtn setBackgroundImage:selectedImg forState:UIControlStateNormal];
-        }else{
-            _selectedBtn.selected = NO;
-            [_selectedBtn setBackgroundImage:unselectedImg forState:UIControlStateNormal];
-        }
-    }else{
-        self.title = [NSString stringWithFormat:@"%ld / %ld",page + 1, self.photos.count];
-    }
+    self.title = [NSString stringWithFormat:@"%ld / %ld",page + 1, self.photos.count];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{

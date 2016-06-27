@@ -23,7 +23,6 @@
     NSInteger currentIndex = [[dataDic objectForKey:@"index"] integerValue];
     MLSelectPhotoBrowserViewController *browserVc = [[MLSelectPhotoBrowserViewController alloc] init];
     [browserVc setValue:@(NO) forKeyPath:@"isTrashing"];
-    browserVc.isModelData = NO;
     browserVc.currentPage = currentIndex;
     browserVc.photos = [dataDic objectForKey:@"data"];
     browserVc.deleteCallBack = ^(NSArray *assets){
