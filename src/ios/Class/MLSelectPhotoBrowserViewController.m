@@ -311,21 +311,20 @@ static NSString *_cellIdentifier = @"collectionViewCell";
 }
 
 - (void)trashAsset{
-
-        
-        self.currentPage --;
-        if (self.currentPage < 0) {
-            self.currentPage = 0;
-        }
-        
-        if (self.deleteCallBack) {
-            self.deleteCallBack(trashAssets,eyeType);
-        }
-        if (trashAssets.count == 0) {
-            [self.navigationController popViewControllerAnimated:YES];
-        }else{
-            self.photos = [NSArray arrayWithArray:trashAssets];
-        }
+    NSMutableArray *trashAssets = [NSMutableArray arrayWithArray:self.photos];
+    
+    self.currentPage --;
+    if (self.currentPage < 0) {
+        self.currentPage = 0;
+    }
+    
+    if (self.deleteCallBack) {
+        self.deleteCallBack(trashAssets);
+    }
+    if (trashAssets.count == 0) {
+        [self.navigationController popViewControllerAnimated:YES];
+    }else{
+        self.photos = [NSArray arrayWithArray:trashAssets];
     }
 }
 
